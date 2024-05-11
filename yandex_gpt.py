@@ -16,7 +16,7 @@ def count_gpt_tokens(messages):
         'Content-Type': 'application/json'
     }
     data = {
-        'modelUri': f"gpt://{FOLDER_ID}/yandexgpt-lite",
+        'modelUri': f"gpt://{FOLDER_ID}/{GPT_MODEL}",
         "messages": messages
     }
     try:
