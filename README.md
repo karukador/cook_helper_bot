@@ -4,10 +4,9 @@
 Бот с нейросетью, помогающий в приготовлении еды с помощью своих мега классных функций.  
 
 ## PythonSoldiers.py
-
-Ученик практикума - ник в дискорде  
-Варя Т - `karukador`  
-Данил С - `danosvsemoguishii`  
-Тимофей Е - `eshkerekefteme`  
-Дмитрий С - `mushroom_gilbert`  
-Дмитрий Ж - `xtrelz_qw1gg`
+ник гитхаб - ник в дискорде  
+[karukador](https://github.com/karukador) - `karukador`  
+[DanosVsemoguishii](https://github.com/DanosVsemoguishii) - `danosvsemoguishii`  
+[FreddyFazberUrUr](https://github.com/FreddyFazberUrUr) - `eshkerekefteme`  
+[DimaSemi](https://github.com/DimaSemi) - `mushroom_gilbert`  
+[KAWAKIpdf](https://github.com/KAWAKIpdf) - `xtrelz_qw1gg`
