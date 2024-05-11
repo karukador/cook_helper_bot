@@ -14,12 +14,11 @@ logging.basicConfig(filename=LOGS, level=logging.INFO,
 
 # получение нового iam_token
 def create_new_token():
-    url = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
     headers = {
         "Metadata-Flavor": "Google"
     }
     try:
-        response = requests.get(url=url, headers=headers)
+        response = requests.get(URL_TOKEN=URL_TOKEN, headers=headers)
         if response.status_code == 200:
             token_data = response.json()  # вытаскиваем из ответа iam_token
             # добавляем время истечения iam_token к текущему времени
