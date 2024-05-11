@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import telebot
 import logging
 from telebot.types import BotCommand, BotCommandScope
@@ -16,7 +18,7 @@ bot = telebot.TeleBot(get_bot_token())  # создаём объект бота
 @bot.message_handler(commands=["debug"])
 def send_logs(message):
     user_id = message.chat.id
-    if user_id == ADMIN_ID:
+    if user_id == ADMIN_ID: # TODO реализовать админов списком
         try:
             with open(LOGS, "rb") as f:
                 bot.send_document(message.chat.id, f)
