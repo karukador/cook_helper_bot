@@ -21,6 +21,8 @@ SYSTEM_PROMPT = [{"role": "system", "text": "Ты веселый собесед�
 ADMIN_ID: int = 1234  # сюда введите ваш telegram_id
 # TODO реализовать админов списком
 
+URL_TOKEN = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
+
 # speechkit
 URL_TTS = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 URL_STT = "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?"
