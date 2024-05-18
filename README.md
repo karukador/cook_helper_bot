@@ -10,3 +10,16 @@
 [FreddyFazberUrUr](https://github.com/FreddyFazberUrUr) - `eshkerekefteme`  
 [DimaSemi](https://github.com/DimaSemi) - `mushroom_gilbert`  
 [KAWAKIpdf](https://github.com/KAWAKIpdf) - `xtrelz_qw1gg`
+
+**Файлы папки проекта*
+- bot.py — код бота
+- database.py — код для работы с базой данных
+- speechkit.py — код для работы со SpeechKit
+- yandex_gpt.py — код для работы с Yandex GPT
+- validators.py — функции для проверки лимитов
+- config.py — файл для хранения полезных констант проекта
+- creds.py — файл для хранения данных учётной записи
+- text.py — файл с текстовыми сообщениями бота
+- requirements.txt — файл с зависимостями
+- README.md — описание к проекту  
+- how_to_use.md — инструкция к проекту
