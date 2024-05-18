@@ -11,7 +11,7 @@
 [DimaSemi](https://github.com/DimaSemi) - `mushroom_gilbert`  
 [KAWAKIpdf](https://github.com/KAWAKIpdf) - `xtrelz_qw1gg`
 
-**Файлы папки проекта*
+**Файлы папки проекта**
 - bot.py — код бота
 - database.py — код для работы с базой данных
 - speechkit.py — код для работы со SpeechKit
@@ -23,3 +23,5 @@
 - requirements.txt — файл с зависимостями
 - README.md — описание к проекту  
 - how_to_use.md — инструкция к проекту
+
+[Инструкция](https://github.com/karukador/cook_help_bot/blob/main/how_to_use.md) к использованию бота в файле `how_to_use.md`
