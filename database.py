@@ -1,21 +1,14 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 import sqlite3
-import logging  # модуль для сбора логов
-# подтягиваем константы из config-файла
-from config import LOGS, DB_FILE
-
-# настраиваем запись логов в файл
-logging.basicConfig(filename=LOGS, level=logging.ERROR,
-                    format="%(asctime)s FILE: %(filename)s IN: %(funcName)s MESSAGE: %(message)s", filemode="w")
-
-path_to_db = DB_FILE  # файл базы данных
+import logging
+from config import LOGS, DB_FILE, DB_RECIPES
+import random
+logging.basicConfig(filename=LOGS, level=logging.DEBUG,
+                    format="%(asctime)s FILE: %(filename)s IN: %(funcName)s MESSAGE: %(message)s", filemode="a")
 
 
 def create_database():
     try:
-        with sqlite3.connect(DB_FILE) as conn: # TODO бд поменяется с новыми функциями
+        with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS messages (
@@ -27,10 +20,53 @@ def create_database():
                 tts_symbols INTEGER,
                 stt_blocks INTEGER)
             ''')
-            logging.info("DATABASE: База данных создана")
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS Recipes
+            (recipeID    INTEGER PRIMARY KEY AUTOINCREMENT,
+            category    TEXT NOT NULL,
+            name 	   TEXT NOT NULL,
+            cookTime    INTEGER,
+            source 	   TEXT NOT NULL,
+            ingredients TEXT NOT NULL)
+            """)
+        logging.info(f"DATABASE: Базы данных созданы")
     except Exception as e:
-        logging.debug(e)
+        logging.error(e)
         return None
+
+
+def getFastNRecipes(category, n):
+    conn = sqlite3.connect("../cook-helper-bot/data/recipes.sqlite")
+    cursor = conn.cursor()
+
+    recs = cursor.execute("SELECT * FROM Recipes \
+						   WHERE category='%s'\
+						   AND cookTime IS NOT NULL\
+						   ORDER BY cookTime\
+						   LIMIT %d" % (category, n * 3))
+    recs = recs.fetchall()
+    randomRecs = []
+    for i in range(n):
+        randNum = random.randint(0, len(recs)-1)
+        randRecipe = recs[randNum]
+        randomRecs.append([x for x in randRecipe])
+        randomRecs[-1][4] = "https://eda.ru/recepty/" + category + "/" + randRecipe[4]
+        recs.pop(randNum)
+
+    conn.close()
+
+    return randomRecs
+
+
+def menu(cat):
+    categoriesRu = ["основные", "завтраки", "салаты", "пицца-паста"]
+    categoriesEn = ["osnovnye-blyuda", "zavtraki", "salaty", "pasta-picca"]
+    cat = categoriesEn[categoriesRu.index(cat)]
+    return view(getFastNRecipes(cat, 5))
+
+
+def view(recipes):
+    return "\n\n".join(["%s\n%d\n%s\n%s" % (x[2], x[3], x[4], ', '.join(x[5].split(','))) for x in recipes])
 
 
 def add_message(user_id, full_message):
