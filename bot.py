@@ -60,6 +60,22 @@ def send_welcome(message):
     register_comands(message)
 
 
+@bot.message_handler(commands=['get_recipe'])
+def recipe_handler_start(msg: Message):
+    user_id = msg.chat.id
+    bot.send_message(user_id, 'Выбери категорию рецепта на клавиатуре снизу', reply_markup=create_keyboard(CATEGORIES))
+    bot.register_next_step_handler(msg, recipe_helper_category)
+
+
+def recipe_helper_category(msg: Message):
+    if msg.text not in CATEGORIES:
+        bot.send_message(msg.chat.id, 'Выбери категорию из предложенных', reply_markup=create_keyboard(CATEGORIES))
+        bot.register_next_step_handler(msg, recipe_handler_start)
+        return
+    bot.send_message(msg.chat.id, text=menu(msg.text))
+
+
+
 # команда /help
 @bot.message_handler(commands=["help"])
 def about_bot(message):
