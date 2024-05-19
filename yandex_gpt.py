@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import requests
 import logging
 import requests
 from config import MAX_GPT_TOKENS, SYSTEM_PROMPT, GPT_URL, GPT_MODEL
