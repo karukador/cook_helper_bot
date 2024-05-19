@@ -5,7 +5,7 @@ import logging
 import time
 from datetime import datetime
 import requests
-from config import LOGS, IAM_TOKEN_PATH, FOLDER_ID_PATH, BOT_TOKEN_PATH
+from config import LOGS, IAM_TOKEN_PATH, FOLDER_ID_PATH, BOT_TOKEN_PATH, URL_TOKEN
 
 # настраиваем запись логов в файл
 logging.basicConfig(filename=LOGS, level=logging.INFO,
