@@ -75,7 +75,7 @@ def recipe_helper_category(msg: Message):
         bot.send_message(msg.chat.id, 'Выбери категорию из предложенных', reply_markup=create_keyboard(CATEGORIES))
         bot.register_next_step_handler(msg, recipe_handler_start)
         return
-    bot.send_message(msg.chat.id, text=menu(msg.text))
+    bot.send_message(msg.chat.id, text=menu(msg.text), parse_mode="markdown")
 
 
 # команда /help
@@ -124,7 +124,8 @@ def handle_text(message):
         full_gpt_message = [answer_gpt, 'assistant', total_gpt_tokens, 0, 0]
         add_message(user_id=user_id, full_message=full_gpt_message)
 
-        bot.send_message(user_id, answer_gpt, reply_to_message_id=message.id)  # отвечаем пользователю текстом
+        bot.send_message(user_id, answer_gpt, reply_to_message_id=message.id, parse_mode="markdown")  # отвечаем
+        # пользователю текстом
     except Exception as e:
         logging.error(e)  # если ошибка — записываем её в логи
         bot.send_message(message.from_user.id, "Не получилось ответить. Попробуй написать другое сообщение")
