@@ -12,11 +12,10 @@ MAX_USER_GPT_TOKENS = 2_000  # 2 000 токенов
 
 GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 GPT_MODEL = "yandexgpt-lite"
-SYSTEM_PROMPT = [{"role": "system", "text": "Ты веселый собеседник. Общайся с пользователем на \"ты\"."
-                                            "Не объясняй пользователю, что ты умеешь и можешь. Чётко и понятно "
-                                            "отвечай на вопросы пользователя. Не используй диалоги, если этого не "
-                                            "требуется."
-                                            "Изображай человека"}]  # список с системным промтом
+SYSTEM_PROMPT = [{"role": "system", "text": "Не объясняй пользователю, что ты умеешь и можешь. Чётко и понятно "
+                                            "отвечай на вопросы пользователя. Не используй диалоги. Не трать символы "
+                                            "просто так, используй их с умом. Используй разметку markdown для "
+                                            "оформления сообщений"}]
 # TODO сменить системный промпт под помощника на кухне
 ADMIN_ID: int = 1234  # сюда введите ваш telegram_id
 # TODO реализовать админов списком
@@ -38,7 +37,5 @@ DB_FILE = f'{HOME_DIR}/database.db'  # файл для базы данных
 IAM_TOKEN_PATH = f'{HOME_DIR}/creds/iam_token.txt'  # файл для хранения iam_token
 FOLDER_ID_PATH = f'{HOME_DIR}/creds/folder_id.txt'  # файл для хранения folder_id
 BOT_TOKEN_PATH = f'{HOME_DIR}/creds/bot_token.txt'  # файл для хранения bot_token
-SYSTEM_PROMPT = [{'role': 'system', 'text': 'Будь добрым другом пользователя'}]
 DB_RECIPES = 'recipes.sqlite'
 CATEGORIES = ["основные", "завтраки", "салаты", "пицца-паста", 'ризотто']
-
