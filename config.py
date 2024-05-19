@@ -33,8 +33,12 @@ VOICE = "filipp"  # желаемый голос можно выбрать в с�
 # utils
 HOME_DIR = '/home/student/cook_help_bot'  # путь к папке с проектом
 LOGS = f'{HOME_DIR}/logs.log'  # файл для логов
-DB_FILE = f'{HOME_DIR}/messages.db'  # файл для базы данных
+DB_FILE = f'{HOME_DIR}/database.db'  # файл для базы данных
 
 IAM_TOKEN_PATH = f'{HOME_DIR}/creds/iam_token.txt'  # файл для хранения iam_token
 FOLDER_ID_PATH = f'{HOME_DIR}/creds/folder_id.txt'  # файл для хранения folder_id
 BOT_TOKEN_PATH = f'{HOME_DIR}/creds/bot_token.txt'  # файл для хранения bot_token
+SYSTEM_PROMPT = [{'role': 'system', 'text': 'Будь добрым другом пользователя'}]
+DB_RECIPES = 'recipes.sqlite'
+CATEGORIES = ["основные", "завтраки", "салаты", "пицца-паста", 'ризотто']
+
