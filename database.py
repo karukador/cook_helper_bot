@@ -2,6 +2,7 @@ import sqlite3
 import logging
 from config import LOGS, DB_FILE, DB_RECIPES
 import random
+
 logging.basicConfig(filename=LOGS, level=logging.DEBUG,
                     format="%(asctime)s FILE: %(filename)s IN: %(funcName)s MESSAGE: %(message)s", filemode="a")
 
@@ -36,18 +37,18 @@ def create_database():
 
 
 def getFastNRecipes(category, n):
-    conn = sqlite3.connect("../cook-helper-bot/data/recipes.sqlite")
+    conn = sqlite3.connect(DB_RECIPES)
     cursor = conn.cursor()
 
     recs = cursor.execute("SELECT * FROM Recipes \
-						   WHERE category='%s'\
-						   AND cookTime IS NOT NULL\
-						   ORDER BY cookTime\
-						   LIMIT %d" % (category, n * 3))
+	                      WHERE category='%s'\
+	                      AND cookTime IS NOT NULL\
+	                      ORDER BY cookTime\
+	                      LIMIT %d" % (category, n * 3))
     recs = recs.fetchall()
     randomRecs = []
     for i in range(n):
-        randNum = random.randint(0, len(recs)-1)
+        randNum = random.randint(0, len(recs) - 1)
         randRecipe = recs[randNum]
         randomRecs.append([x for x in randRecipe])
         randomRecs[-1][4] = "https://eda.ru/recepty/" + category + "/" + randRecipe[4]
@@ -66,7 +67,11 @@ def menu(cat):
 
 
 def view(recipes):
-    return "\n\n".join(["%s\n%d\n%s\n%s" % (x[2], x[3], x[4], ', '.join(x[5].split(','))) for x in recipes])
+    result = ""
+    for recipe in recipes:
+        result += f"[{recipe[2]}]({recipe[4]})\n"
+        result += f"**Ингредиенты**: {', '.join(recipe[5].split(','))}\n\n"
+    return result
 
 
 def add_message(user_id, full_message):
