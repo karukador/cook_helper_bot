@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 import telebot
 import logging
-from telebot.types import BotCommand, BotCommandScope
+from telebot.types import BotCommand, BotCommandScope, Message
+
+from keyboard import create_keyboard
 from text import start_message, help_message, feedback_text
 from validators import check_number_of_users, is_gpt_token_limit, is_stt_block_limit, is_tts_symbol_limit
 from yandex_gpt import ask_gpt
-from config import COUNT_LAST_MSG, ADMIN_ID, LOGS
-from database import create_database, add_message, select_n_last_messages
+from config import COUNT_LAST_MSG, ADMIN_ID, LOGS, CATEGORIES
+from database import create_database, add_message, select_n_last_messages, menu
 from speechkit import text_to_speech, speech_to_text
 from creds import get_bot_token  # модуль для получения bot_token
 
@@ -18,7 +20,7 @@ bot = telebot.TeleBot(get_bot_token())  # создаём объект бота
 @bot.message_handler(commands=["debug"])
 def send_logs(message):
     user_id = message.chat.id
-    if user_id == ADMIN_ID: # TODO реализовать админов списком
+    if user_id == ADMIN_ID:  # TODO реализовать админов списком
         try:
             with open(LOGS, "rb") as f:
                 bot.send_document(message.chat.id, f)
@@ -73,7 +75,6 @@ def recipe_helper_category(msg: Message):
         bot.register_next_step_handler(msg, recipe_handler_start)
         return
     bot.send_message(msg.chat.id, text=menu(msg.text))
-
 
 
 # команда /help
