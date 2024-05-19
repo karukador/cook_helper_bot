@@ -81,7 +81,7 @@ def recipe_helper_category(msg: Message):
 # команда /help
 @bot.message_handler(commands=["help"])
 def about_bot(message):
-    bot.send_message(message.chat.id, help_message, parse_mode="markdown")
+    bot.send_message(message.chat.id, text=help_message)
 
 
 # обрабатываем текстовые сообщения
