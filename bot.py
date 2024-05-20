@@ -3,12 +3,14 @@
 import telebot
 import logging
 from telebot.types import BotCommand, BotCommandScope, Message
-
+import time
+import schedule
+from threading import Thread
 from keyboard import create_keyboard
 from text import start_message, help_message, feedback_text
 from validators import check_number_of_users, is_gpt_token_limit, is_stt_block_limit, is_tts_symbol_limit
 from yandex_gpt import ask_gpt
-from config import COUNT_LAST_MSG, ADMIN_ID, LOGS, CATEGORIES
+from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES
 from database import create_database, add_message, select_n_last_messages, menu
 from speechkit import text_to_speech, speech_to_text
 from creds import get_bot_token  # модуль для получения bot_token
@@ -18,9 +20,9 @@ bot = telebot.TeleBot(get_bot_token())  # создаём объект бота
 
 # Команда /debug с доступом только для админов
 @bot.message_handler(commands=["debug"])
-def send_logs(message):
+def send_logs(message: Message):
     user_id = message.chat.id
-    if user_id == ADMIN_ID:  # TODO реализовать админов списком
+    if user_id in ADMIN_IDS:
         try:
             with open(LOGS, "rb") as f:
                 bot.send_document(message.chat.id, f)
@@ -32,40 +34,59 @@ def send_logs(message):
         logging.info(f"{user_id} пытался получить доступ к логам, не являясь админом")
 
 
-def register_comands(message):
+def register_comands(message: Message):
     commands = [  # Установка списка команд с областью видимости и описанием
         BotCommand("start", "запуск бота"),
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
-        BotCommand("get_recipe", "выбрать рецепт")]
+        BotCommand("get_recipe", "выбрать рецепт"),
+        BotCommand('set', 'Поставить таймер')]
     bot.set_my_commands(commands)
     BotCommandScope('private', chat_id=message.chat.id)
 
 
 @bot.message_handler(commands=["feedback"])
-def feedback_handler(message):
+def feedback_handler(message: Message):
     bot.send_message(message.chat.id, feedback_text.format(message.from_user,
                                                            bot.get_me()), parse_mode="markdown")
     bot.register_next_step_handler(message, feedback)
 
 
-def feedback(message):
-    with open('creds/feedback.txt', 'w', encoding='utf-8') as f:
+def feedback(message: Message):
+    with open('creds/feedback.txt', 'a', encoding='utf-8') as f:
         f.write(f'{message.from_user.first_name}({message.from_user.id}) оставил отзыв - "{message.text}"\n')
         bot.send_message(message.chat.id, 'Спасибо за отзыв!')
 
 
 # Команда /start
 @bot.message_handler(commands=["start"])
-def send_welcome(message):
+def send_welcome(message: Message):
     logging.info("Отправка приветственного сообщения")
     bot.reply_to(message, start_message)
     register_comands(message)
 
 
+@bot.message_handler(commands=['set'])
+def set_timer(msg):
+    args = msg.text.split()
+    if len(args) > 1 and args[1].isdigit():
+        sec = int(args[1])
+        schedule.every(sec).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
+        bot.send_message(msg.chat.id, 'Таймер поставлен!')
+    else:
+        bot.reply_to(msg,
+                     'Пример использования команды: /set 5 (эта команда ставит таймер на 5 минут)')
+
+
+@bot.message_handler(commands=['unset'])
+def unset_timer(msg: Message):
+    schedule.clear(msg.chat.id)
+
+
 @bot.message_handler(commands=['get_recipe'])
 def recipe_handler_start(msg: Message):
-    bot.send_message(msg.chat.id, 'Выбери категорию рецепта на клавиатуре снизу', reply_markup=create_keyboard(CATEGORIES))
+    bot.send_message(msg.chat.id, 'Выбери категорию рецепта на клавиатуре снизу',
+                     reply_markup=create_keyboard(CATEGORIES))
     bot.register_next_step_handler(msg, recipe_helper_category)
 
 
@@ -80,13 +101,13 @@ def recipe_helper_category(msg: Message):
 
 # команда /help
 @bot.message_handler(commands=["help"])
-def about_bot(message):
+def about_bot(message: Message):
     bot.send_message(message.chat.id, text=help_message)
 
 
 # обрабатываем текстовые сообщения
 @bot.message_handler(content_types=["text"])
-def handle_text(message):
+def handle_text(message: Message):
     try:
         user_id = message.from_user.id
 
@@ -132,7 +153,7 @@ def handle_text(message):
 
 
 @bot.message_handler(content_types=['voice'])
-def handle_voice(message: telebot.types.Message):
+def handle_voice(message: Message):
     try:
         user_id = message.from_user.id
 
@@ -202,16 +223,26 @@ def handler(message):
     bot.send_message(message.from_user.id, "Отправь мне голосовое или текстовое сообщение, и я тебе отвечу")
 
 
+def alert(user_id):
+    bot.send_message(user_id, 'Таймер')
+    schedule.clear(user_id)
+
+
+def _schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 if __name__ == "__main__":
-    # Настройка логирования
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H",
         filename=LOGS,
-        filemode="w",
+        filemode="a",
         encoding='utf-8',
         force=True)
     create_database()  # Создание таблицы в БД
-    bot.infinity_polling()  # запуск бота 🎉
-    logging.info("Бот запущен")
+    Thread(target=_schedule, name='schedule', daemon=True).start()
+    bot.infinity_polling()
