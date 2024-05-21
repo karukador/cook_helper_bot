@@ -40,9 +40,10 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand('set', 'Поставить таймер')]
+        BotCommand("set", "поставить таймер"), 
+        BotCommand(" unset", " удалить таймер")]
     bot.set_my_commands(commands)
-    BotCommandScope('private', chat_id=message.chat.id)
+    BotCommandScope("private", chat_id=message.chat.id)
 
 
 @bot.message_handler(commands=["feedback"])
@@ -53,9 +54,9 @@ def feedback_handler(message: Message):
 
 
 def feedback(message: Message):
-    with open('creds/feedback.txt', 'a', encoding='utf-8') as f:
+    with open("creds/feedback.txt", "a", encoding="utf-8") as f:
         f.write(f'{message.from_user.first_name}({message.from_user.id}) оставил отзыв - "{message.text}"\n')
-        bot.send_message(message.chat.id, 'Спасибо за отзыв!')
+        bot.send_message(message.chat.id, "Спасибо за отзыв!")
 
 
 # Команда /start
@@ -66,15 +67,15 @@ def send_welcome(message: Message):
     register_comands(message)
 
 
-@bot.message_handler(commands=['set'])
+@bot.message_handler(commands=["set"])
 def set_timer_handler(msg):
     if not schedule.get_jobs(msg.chat.id):
-        bot.send_message(msg.chat.id, 'Чтобы поставить таймер, введи кол-во часов, на которые ты хотел бы'
-                                      'поставить таймер(если время таймера должно быть меньше часа, введи 0')
-        bot.register_next_step_handler(msg, set_timer_thing, 0, 'hours')
+        bot.send_message(msg.chat.id, "Чтобы поставить таймер, введи кол-во часов, на которые ты хотел бы"
+                                      "поставить таймер(если время таймера должно быть меньше часа, то введи 0)")
+        bot.register_next_step_handler(msg, set_timer_thing, 0, "hours")
     else:
-        bot.send_message(msg.chat.id, f'У вас уже есть один таймер. Он закончится через'
-                                      f' {schedule.get_jobs(msg.chat.id)[0].interval} минут(ы)')
+        bot.send_message(msg.chat.id, f"У вас уже есть один таймер. Он закончится через"
+                                      f" {schedule.get_jobs(msg.chat.id)[0].interval} минут(ы)")
 
 
 def set_timer_thing(msg, minutes, mode):
@@ -87,32 +88,32 @@ def set_timer_thing(msg, minutes, mode):
         thing = None
     if thing:
         thing = int(thing)
-        if mode == 'hours':
+        if mode == "hours":
             minutes += thing * 60
             bot.send_message(msg.chat.id, 'Теперь введи минуты')
             bot.register_next_step_handler(msg, set_timer_thing, minutes, 'minutes')
         elif mode == 'minutes':
             minutes += thing
             schedule.every(minutes).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
-            bot.send_message(msg.chat.id, 'Таймер поставлен!')
+            bot.send_message(msg.chat.id, "Таймер поставлен!")
             print(minutes)
 
 
-@bot.message_handler(commands=['unset'])
+@bot.message_handler(commands=["unset"])
 def unset_timer(msg: Message):
     schedule.clear(msg.chat.id)
 
 
-@bot.message_handler(commands=['get_recipe'])
+@bot.message_handler(commands=["get_recipe"])
 def recipe_handler_start(msg: Message):
-    bot.send_message(msg.chat.id, 'Выбери категорию рецепта на клавиатуре снизу',
+    bot.send_message(msg.chat.id, "Выбери категорию рецепта на клавиатуре снизу",
                      reply_markup=create_keyboard(CATEGORIES))
     bot.register_next_step_handler(msg, recipe_helper_category)
 
 
 def recipe_helper_category(msg: Message):
     if msg.text not in CATEGORIES:
-        bot.send_message(msg.chat.id, 'Выбери категорию из предложенных', reply_markup=create_keyboard(CATEGORIES))
+        bot.send_message(msg.chat.id, "Выбери категорию из предложенных", reply_markup=create_keyboard(CATEGORIES))
         bot.register_next_step_handler(msg, recipe_handler_start)
         return
     bot.send_message(msg.chat.id, text=menu(msg.text), parse_mode="markdown")
@@ -244,7 +245,7 @@ def handler(message):
 
 
 def alert(user_id):
-    bot.send_message(user_id, 'Таймер')
+    bot.send_message(user_id, "Таймер!")
     schedule.clear(user_id)
 
 
