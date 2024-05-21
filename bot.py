@@ -40,7 +40,8 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand('set', 'Поставить таймер')]
+        BotCommand("set", "поставить таймер"),
+        BotCommand("unset", "удалить таймер")]
     bot.set_my_commands(commands)
     BotCommandScope('private', chat_id=message.chat.id)
 
@@ -70,20 +71,25 @@ def send_welcome(message: Message):
 def set_timer(msg):
     args = msg.text.split()
     if len(args) > 1 and args[1].isdigit():
+        if schedule.get_jobs(msg.chat.id):
+            bot.send_message(msg.chat.id, "У вас уже установлен таймер. Используйте команду /unset для его удаления.")
+            return
         sec = int(args[1])
         schedule.every(sec).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
         bot.send_message(msg.chat.id, 'Таймер поставлен!')
     else:
         bot.reply_to(msg,
-                     'Пример использования команды: /set 5 (эта команда ставит таймер на 5 минут)')
+                     "Пример использования команды: /set 5 (эта команда ставит таймер на 5 минут)")
 
 
-@bot.message_handler(commands=['unset'])
+@bot.message_handler(commands=["unset"])
 def unset_timer(msg: Message):
+    if not schedule.get_jobs(msg.chat.id):
+        bot.send_message(msg.chat.id, "У вас еще не установлен таймер. Используйте команду /set для его установки.")
     schedule.clear(msg.chat.id)
 
 
-@bot.message_handler(commands=['get_recipe'])
+@bot.message_handler(commands=["get_recipe"])
 def recipe_handler_start(msg: Message):
     bot.send_message(msg.chat.id, 'Выбери категорию рецепта на клавиатуре снизу',
                      reply_markup=create_keyboard(CATEGORIES))
