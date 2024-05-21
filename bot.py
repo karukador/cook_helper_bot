@@ -10,7 +10,7 @@ from keyboard import create_keyboard
 from text import start_message, help_message, feedback_text
 from validators import check_number_of_users, is_gpt_token_limit, is_stt_block_limit, is_tts_symbol_limit
 from yandex_gpt import ask_gpt
-from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES, TIMER
+from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES
 from database import create_database, add_message, select_n_last_messages, menu
 from speechkit import text_to_speech, speech_to_text
 from creds import get_bot_token  # модуль для получения bot_token
@@ -40,8 +40,7 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand("set", "поставить таймер"),
-        BotCommand("unset", "удалить таймер")]
+        BotCommand('set', 'Поставить таймер')]
     bot.set_my_commands(commands)
     BotCommandScope('private', chat_id=message.chat.id)
 
@@ -68,28 +67,43 @@ def send_welcome(message: Message):
 
 
 @bot.message_handler(commands=['set'])
-def set_timer(msg):
-    args = msg.text.split()
-    if len(args) > 1 and args[1].isdigit():
-        if schedule.get_jobs(msg.chat.id):
-            bot.send_message(msg.chat.id, "У вас уже установлен таймер. Используйте команду /unset для его удаления.")
-            return
-        sec = int(args[1])
-        schedule.every(sec).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
-        bot.send_message(msg.chat.id, 'Таймер поставлен!')
-    else:
-        bot.reply_to(msg,
-                     "Пример использования команды: /set 5 (эта команда ставит таймер на 5 минут)")
-
-
-@bot.message_handler(commands=["unset"])
-def unset_timer(msg: Message):
+def set_timer_handler(msg):
     if not schedule.get_jobs(msg.chat.id):
-        bot.send_message(msg.chat.id, "У вас еще не установлен таймер. Используйте команду /set для его установки.")
+        bot.send_message(msg.chat.id, 'Чтобы поставить таймер, введи кол-во часов, на которые ты хотел бы'
+                                      'поставить таймер(если время таймера должно быть меньше часа, введи 0')
+        bot.register_next_step_handler(msg, set_timer_thing, 0, 'hours')
+    else:
+        bot.send_message(msg.chat.id, f'У вас уже есть один таймер. Он закончится через'
+                                      f' {schedule.get_jobs(msg.chat.id)[0].interval} минут(ы)')
+
+
+def set_timer_thing(msg, minutes, mode):
+    msgs = msg.text.split()
+    for i in range(len(msgs)):
+        if msgs[i].isdigit():
+            thing = msgs[i]
+            break
+    else:
+        thing = None
+    if thing:
+        thing = int(thing)
+        if mode == 'hours':
+            minutes += thing * 60
+            bot.send_message(msg.chat.id, 'Теперь введи минуты')
+            bot.register_next_step_handler(msg, set_timer_thing, minutes, 'minutes')
+        elif mode == 'minutes':
+            minutes += thing
+            schedule.every(minutes).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
+            bot.send_message(msg.chat.id, 'Таймер поставлен!')
+            print(minutes)
+
+
+@bot.message_handler(commands=['unset'])
+def unset_timer(msg: Message):
     schedule.clear(msg.chat.id)
 
 
-@bot.message_handler(commands=["get_recipe"])
+@bot.message_handler(commands=['get_recipe'])
 def recipe_handler_start(msg: Message):
     bot.send_message(msg.chat.id, 'Выбери категорию рецепта на клавиатуре снизу',
                      reply_markup=create_keyboard(CATEGORIES))
@@ -230,9 +244,7 @@ def handler(message):
 
 
 def alert(user_id):
-    bot.send_message(user_id, "Таймер!")
-    with open(TIMER, "rb") as t:
-        bot.send_voice(user_id, t)
+    bot.send_message(user_id, 'Таймер')
     schedule.clear(user_id)
 
 
