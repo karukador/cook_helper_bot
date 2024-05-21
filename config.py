@@ -39,3 +39,5 @@ FOLDER_ID_PATH = f'{HOME_DIR}/creds/folder_id.txt'  # файл для хране
 BOT_TOKEN_PATH = f'{HOME_DIR}/creds/bot_token.txt'  # файл для хранения bot_token
 DB_RECIPES = f'{HOME_DIR}/recipes.sqlite'
 CATEGORIES = ["основные", "завтраки", "салаты", "пицца-паста"]
+
+TIMER = f'{HOME_DIR}\\timer.mp3'
