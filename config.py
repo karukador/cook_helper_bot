@@ -17,7 +17,7 @@ SYSTEM_PROMPT = [{"role": "system", "text": "Ты помощник на кухн
                                             "отвечай на вопросы пользователя. Не используй диалоги. Не трать символы "
                                             "просто так, используй их с умом. Используй разметку markdown для "
                                             "оформления сообщений"}]
-ADMIN_ID: int = 1234  # сюда введите ваш telegram_id
+ADMIN_IDS = [1234, 4321]  # сюда введите ваш telegram_id
 # TODO реализовать админов списком
 
 URL_TOKEN = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
