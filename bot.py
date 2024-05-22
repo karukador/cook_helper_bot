@@ -10,7 +10,7 @@ from keyboard import create_keyboard
 from text import start_message, help_message, feedback_text
 from validators import check_number_of_users, is_gpt_token_limit, is_stt_block_limit, is_tts_symbol_limit
 from yandex_gpt import ask_gpt
-from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES
+from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES, TIMER
 from database import create_database, add_message, select_n_last_messages, menu
 from speechkit import text_to_speech, speech_to_text
 from creds import get_bot_token  # модуль для получения bot_token
@@ -40,7 +40,7 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand("set", "поставить таймер"), 
+        BotCommand("set", "поставить таймер"),
         BotCommand(" unset", " удалить таймер")]
     bot.set_my_commands(commands)
     BotCommandScope("private", chat_id=message.chat.id)
@@ -102,6 +102,19 @@ def set_timer_thing(msg, minutes, mode):
 @bot.message_handler(commands=["unset"])
 def unset_timer(msg: Message):
     schedule.clear(msg.chat.id)
+
+
+def alert(user_id):
+    bot.send_message(user_id, "Таймер!")
+    with open(TIMER, "rb") as t:
+        bot.send_voice(user_id, t)
+    schedule.clear(user_id)
+
+
+def _schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 @bot.message_handler(commands=["get_recipe"])
@@ -242,19 +255,6 @@ def handle_voice(message: Message):
 @bot.message_handler(func=lambda: True)
 def handler(message):
     bot.send_message(message.from_user.id, "Отправь мне голосовое или текстовое сообщение, и я тебе отвечу")
-
-
-def alert(user_id):
-    bot.send_message(user_id, "Таймер!")
-    with open(TIMER, "rb") as t:
-        bot.send_voice(user_id, t)
-    schedule.clear(user_id)
-
-
-def _schedule():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
 
 
 if __name__ == "__main__":
