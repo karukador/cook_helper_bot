@@ -246,6 +246,8 @@ def handler(message):
 
 def alert(user_id):
     bot.send_message(user_id, "Таймер!")
+    with open(TIMER, "rb") as t:
+        bot.send_voice(user_id, t)
     schedule.clear(user_id)
 
 
