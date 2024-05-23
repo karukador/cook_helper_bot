@@ -23,7 +23,7 @@ SYSTEM_PROMPT: list[dict[str, str]] = [{"role": "system", "text":
                                             "а 5 - опытный шеф-повар."
                                             "Старайся отвечать на вопросы, основываясь на уровне знаний пользователя."}]
 ADMIN_IDS: list = [1234, 4321]
-LEVELS =  ['Новичок', 'Знаток', "Профи", "Мастер", "Гений"]
+LEVELS = ['Новичок', 'Знаток', "Профи", "Мастер", "Гений"]
 URL_TOKEN = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
 
 # speechkit
