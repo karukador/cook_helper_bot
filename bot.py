@@ -10,7 +10,7 @@ from keyboard import create_keyboard
 from text import start_message, help_message, feedback_text
 from validators import check_number_of_users, is_gpt_token_limit, is_stt_block_limit, is_tts_symbol_limit
 from yandex_gpt import ask_gpt
-from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES, LEVELS
+from config import COUNT_LAST_MSG, ADMIN_IDS, LOGS, CATEGORIES, LEVELS, TIMER
 from database import create_database, add_message, select_n_last_messages, menu
 from speechkit import text_to_speech, speech_to_text
 from creds import get_bot_token  # модуль для получения bot_token
@@ -26,12 +26,13 @@ def send_logs(message: Message):
         try:
             with open(LOGS, "rb") as f:
                 bot.send_document(message.chat.id, f)
-                logging.info("логи отправлены")
+                logging.info(f"Логи отправлены админу {user_id}")
         except telebot.apihelper.ApiTelegramException:
             bot.send_message(message.chat.id, "Логов пока нет.")
+            logging.error(f"Ошибка при отправке логов админу {user_id}")
     else:
         bot.send_message(message.chat.id, "У Вас недостаточно прав для использования этой команды.")
-        logging.info(f"{user_id} пытался получить доступ к логам, не являясь админом")
+        logging.info(f"Попытка доступа к логам от неадмина {user_id}")
 
 
 def register_comands(message: Message):
@@ -40,16 +41,16 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand('set', 'Поставить таймер'),
-        BotCommand('unset', 'Урать таймер')]
+        BotCommand("set", "поставить таймер"),
+        BotCommand(" unset", " удалить таймер")]
     bot.set_my_commands(commands)
-    BotCommandScope('private', chat_id=message.chat.id)
+    BotCommandScope("private", chat_id=message.chat.id)
 
 
 @bot.message_handler(commands=["feedback"])
 def feedback_handler(message: Message):
-    bot.send_message(message.chat.id, feedback_text.format(message.from_user,
-                                                           bot.get_me()), parse_mode="markdown")
+    bot.send_message(message.chat.id, feedback_text.format(message.from_user, bot.get_me()), parse_mode="markdown")
+    logging.info(f"Отправлен запрос на отзыв от пользователя {message.from_user.id}")
     bot.register_next_step_handler(message, feedback)
 
 
@@ -67,13 +68,16 @@ def send_welcome(message: Message):
     register_comands(message)
 
 
-@bot.message_handler(commands=['set'])
-def set_timer_handler(msg: Message):
+@bot.message_handler(commands=["set"])
+def set_timer_handler(msg):
     if not schedule.get_jobs(msg.chat.id):
-        bot.send_message(msg.chat.id, 'Чтобы поставить таймер, введи кол-во часов, на которые ты хотел бы'
-                                      'поставить таймер(если время таймера должно быть меньше часа, введи 0',
-                         reply_markup=create_keyboard(['1', '2', '3', '4', '5']))
-        bot.register_next_step_handler(msg, set_timer_thing, 0, 'hours')
+        bot.send_message(msg.chat.id,
+                         "Чтобы поставить таймер, введи кол-во часов или минут.\n"
+                         "Примеры:\n"
+                         "1 минута\n"
+                         "1 час\n"
+                         "15 минут")
+        bot.register_next_step_handler(msg, set_timer_thing)
     else:
         hours = schedule.get_jobs(msg.chat.id)[0].next_run.hour
         minutes = schedule.get_jobs(msg.chat.id)[0].next_run.minute
@@ -81,25 +85,32 @@ def set_timer_handler(msg: Message):
                                       f" {hours}:{minutes}")
 
 
-def set_timer_thing(msg: Message, minutes, mode):
-    msgs = msg.text.split()
-    for i in range(len(msgs)):
-        if msgs[i].isdigit():
-            thing = msgs[i]
+def set_timer_thing(msg):
+    text = msg.text.lower()
+    if "минут" in text or "минута" in text or "минуты" in text:
+        mode = "minutes"
+    elif "час" in text or "часа" in text or "часов" in text:
+        mode = "hours"
+    else:
+        bot.send_message(msg.chat.id, "Неправильный формат ввода.")
+        return
+
+    for word in text.split():
+        if word.isdigit():
+            value = int(word)
             break
     else:
-        thing = None
-    if thing:
-        thing = int(thing)
-        if mode == 'hours':
-            minutes += thing * 60
-            bot.send_message(msg.chat.id, 'Теперь введи минуты',
-                             reply_markup=create_keyboard(['5', '10', '15', '30']))
-            bot.register_next_step_handler(msg, set_timer_thing, minutes, 'minutes')
-        elif mode == 'minutes':
-            minutes += thing
-            schedule.every(minutes).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
-            bot.send_message(msg.chat.id, 'Таймер поставлен!')
+        bot.send_message(msg.chat.id, "Неправильный формат ввода. Пожалуйста, введите количество часов или минут")
+        return
+
+    if mode == "hours":
+        minutes = value * 60
+    else:
+        minutes = value
+
+    schedule.every(minutes).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
+    bot.send_message(msg.chat.id, "Таймер поставлен!")
+    logging.info(f"{msg.chat.id} поставил таймер на {minutes} (данные в минутах)")
 
 
 @bot.message_handler(commands=['unset'])
@@ -109,6 +120,19 @@ def unset_timer(msg: Message):
     else:
         bot.send_message(msg.chat.id, 'У вас еще не поставлен таймер. Введите команду /set для того,'
                                       'чтобы его поставить.')
+
+def alert(user_id):
+    bot.send_message(user_id, "Таймер!")
+    with open(TIMER, "rb") as t:
+        bot.send_voice(user_id, t)
+    schedule.clear(user_id)
+
+
+
+def _schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 @bot.message_handler(commands=['get_recipe'])
@@ -137,6 +161,7 @@ def handle_text(message: Message, text):
     try:
         if message.text in LEVELS:
             user_id = message.from_user.id
+            logging.info(f"Получено текстовое сообщение от пользователя {user_id}: {message.text}")
 
             # ВАЛИДАЦИЯ: проверяем, есть ли место для ещё одного пользователя (если пользователь новый)
             status_check_users, error_message = check_number_of_users(user_id)
@@ -183,9 +208,8 @@ def handle_text(message: Message, text):
 
 @bot.message_handler(content_types=['voice', 'text'])
 def handle_all(msg: Message):
-    bot.send_message(msg.chat.id, 'Введите, пожалуйста, ваш уровень знаний кулинарии от 1 до 5, где '
-                                  '1 - абсолютный новичок, а 5 - опытный шеф повар.',
-                     reply_markup=create_keyboard(['Новичок', 'Знаток', "Профи", "Мастер", "Гений"]))
+    bot.send_message(msg.chat.id, "Пожалуйста, выберите ващ уровень знаний в кулинарии",
+                     reply_markup=create_keyboard(LEVELS))
     if msg.voice:
         bot.register_next_step_handler(msg, handle_voice, msg.voice)
     else:
@@ -196,7 +220,8 @@ def handle_voice(message: Message, voice):
     try:
         if message.text in LEVELS:
             user_id = message.from_user.id
-
+            logging.info(f"Получено голосовое сообщение от пользователя {user_id}: {message.voice.duration} сек")
+            
             # Проверка на максимальное количество пользователей
             status_check_users, error_message = check_number_of_users(user_id)
             if not status_check_users:
@@ -264,16 +289,6 @@ def handle_voice(message: Message, voice):
 def handler(message):
     bot.send_message(message.from_user.id, "Отправь мне голосовое или текстовое сообщение, и я тебе отвечу")
 
-
-def alert(user_id):
-    bot.send_message(user_id, 'Таймер')
-    schedule.clear(user_id)
-
-
-def _schedule():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
 
 
 if __name__ == "__main__":
