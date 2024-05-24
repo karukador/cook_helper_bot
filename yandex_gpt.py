@@ -15,11 +15,11 @@ def count_gpt_tokens(messages):
         'Content-Type': 'application/json'
     }
     data = {
-        'modelUri': f"gpt://{FOLDER_ID}/{GPT_MODEL}",
+        "modelUri": f"gpt://{FOLDER_ID}/{GPT_MODEL}",
         "messages": messages
     }
     try:
-        response = requests.post(url=GPT_URL, json=data, headers=headers).json()['tokens']
+        response = requests.post(url=GPT_URL, json=data, headers=headers).json()["tokens"]
         return len(response)
     except Exception as e:
         logging.error(e)
@@ -28,11 +28,11 @@ def count_gpt_tokens(messages):
 
 def ask_gpt(messages):
     headers = {
-        'Authorization': f'Bearer {IAM_TOKEN}',
-        'Content-Type': 'application/json'
+        "Authorization": f"Bearer {IAM_TOKEN}",
+        "Content-Type": "application/json"
     }
     data = {
-        'modelUri': f"gpt://{FOLDER_ID}/{GPT_MODEL}",
+        "modelUri": f"gpt://{FOLDER_ID}/{GPT_MODEL}",
         "completionOptions": {
             "stream": False,
             "temperature": 0.7,
