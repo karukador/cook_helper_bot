@@ -36,7 +36,7 @@ def create_database():
         return None
 
 
-def getFastNRecipes(category, n):
+def getFastNRecipes_by_cat(category, n):
     conn = sqlite3.connect(DB_RECIPES)
     cursor = conn.cursor()
 
@@ -59,11 +59,37 @@ def getFastNRecipes(category, n):
     return randomRecs
 
 
-def menu(cat):
+def getFastNRecipes_by_ing(ing, category, n):
+    conn = sqlite3.connect(DB_RECIPES)
+    cursor = conn.cursor()
+
+    recs = cursor.execute("SELECT * FROM Recipes \
+                               WHERE ingredients LIKE ? AND category=? \
+                               AND cookTime IS NOT NULL \
+                               ORDER BY cookTime \
+                               LIMIT ?", ['%' + ing + '%', category, n * 3])
+    recs = recs.fetchall()
+    randomRecs = []
+    for i in range(n):
+        randNum = random.randint(0, len(recs) - 1)
+        randRecipe = recs[randNum]
+        randomRecs.append([x for x in randRecipe])
+        randomRecs[-1][4] = "https://eda.ru/recepty/" + category + "/" + randRecipe[4]
+        recs.pop(randNum)
+
+    conn.close()
+
+    return randomRecs
+
+
+def menu(cat, ing=''):
     categoriesRu = ["основные", "завтраки", "салаты", "пицца-паста"]
     categoriesEn = ["osnovnye-blyuda", "zavtraki", "salaty", "pasta-picca"]
     cat = categoriesEn[categoriesRu.index(cat)]
-    return view(getFastNRecipes(cat, 5))
+    if ing:
+        return view(getFastNRecipes_by_ing(ing, cat,  5))
+    else:
+        return view(getFastNRecipes_by_cat(cat, 5))
 
 
 def view(recipes):
