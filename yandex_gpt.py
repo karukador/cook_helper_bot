@@ -44,8 +44,8 @@ def ask_gpt(messages):
         response = requests.post(GPT_URL, headers=headers, json=data)
         if response.status_code != 200:
             return False, f"Ошибка GPT. Статус-код: {response.status_code}", None
-        answer = response.json()['result']['alternatives'][0]['message']['text']
-        tokens_in_answer = count_gpt_tokens([{'role': 'assistant', 'text': answer}])
+        answer = response.json()["result"]["alternatives"][0]["message"]["text"]
+        tokens_in_answer = count_gpt_tokens([{"role": "assistant", "text": answer}])
         return True, answer, tokens_in_answer
     except Exception as e:
         logging.error(e)
