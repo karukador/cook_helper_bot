@@ -11,7 +11,7 @@ def create_database():
     try:
         with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,
@@ -20,7 +20,7 @@ def create_database():
                 total_gpt_tokens INTEGER,
                 tts_symbols INTEGER,
                 stt_blocks INTEGER)
-            ''')
+            """)
             cursor.execute(
                 """CREATE TABLE IF NOT EXISTS Recipes
             (recipeID    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +67,7 @@ def getFastNRecipes_by_ing(ing, category, n):
                                WHERE ingredients LIKE ? AND category=? \
                                AND cookTime IS NOT NULL \
                                ORDER BY cookTime \
-                               LIMIT ?", ['%' + ing + '%', category, n * 3])
+                               LIMIT ?", ["%" + ing + "%", category, n * 3])
     recs = recs.fetchall()
     randomRecs = []
     for i in range(n):
@@ -82,7 +82,7 @@ def getFastNRecipes_by_ing(ing, category, n):
     return randomRecs
 
 
-def menu(cat, ing=''):
+def menu(cat, ing=""):
     categoriesRu = ["основные", "завтраки", "салаты", "пицца-паста"]
     categoriesEn = ["osnovnye-blyuda", "zavtraki", "salaty", "pasta-picca"]
     cat = categoriesEn[categoriesRu.index(cat)]
@@ -96,7 +96,7 @@ def view(recipes):
     result = ""
     for recipe in recipes:
         result += f"[{recipe[2]}]({recipe[4]})\n"
-        result += f"**Ингредиенты**: {', '.join(recipe[5].split(','))}\n\n"
+        result += f"**Ингредиенты**: {", ".join(recipe[5].split(","))}\n\n"
     return result
 
 
@@ -105,9 +105,9 @@ def add_message(user_id, full_message):
         with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
             message, role, total_gpt_tokens, tts_symbols, stt_blocks = full_message
-            cursor.execute('''
+            cursor.execute("""
                     INSERT INTO messages (user_id, message, role, total_gpt_tokens, tts_symbols, stt_blocks) 
-                    VALUES (?, ?, ?, ?, ?, ?)''',
+                    VALUES (?, ?, ?, ?, ?, ?)""",
                            (user_id, message, role, total_gpt_tokens, tts_symbols, stt_blocks)
                            )
             conn.commit()  # сохраняем изменения
@@ -122,7 +122,7 @@ def count_users(user_id):
     try:
         with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
-            cursor.execute('''SELECT COUNT(DISTINCT user_id) FROM messages WHERE user_id <> ?''', (user_id,))
+            cursor.execute("""SELECT COUNT(DISTINCT user_id) FROM messages WHERE user_id <> ?""", (user_id,))
             count = cursor.fetchone()[0]
             return count
     except Exception as e:
@@ -136,13 +136,13 @@ def select_n_last_messages(user_id, n_last_messages=4):
     try:
         with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
-            cursor.execute('''
-            SELECT message, role, total_gpt_tokens FROM messages WHERE user_id=? ORDER BY id DESC LIMIT ?''',
+            cursor.execute("""
+            SELECT message, role, total_gpt_tokens FROM messages WHERE user_id=? ORDER BY id DESC LIMIT ?""",
                            (user_id, n_last_messages))
             data = cursor.fetchall()
             if data and data[0]:
                 for message in reversed(data):
-                    messages.append({'text': message[0], 'role': message[1]})
+                    messages.append({"text": message[0], "role": message[1]})
                     total_spent_tokens = max(total_spent_tokens, message[2])
             return messages, total_spent_tokens
     except Exception as e:
@@ -154,7 +154,7 @@ def count_all_limits(user_id, limit_type):
     try:
         with sqlite3.connect(DB_FILE) as conn:
             cursor = conn.cursor()
-            cursor.execute(f'''SELECT SUM({limit_type}) FROM messages WHERE user_id=?''', (user_id,))
+            cursor.execute(f"""SELECT SUM({limit_type}) FROM messages WHERE user_id=?""", (user_id,))
             data = cursor.fetchone()
             if data and data[0]:
                 logging.info(f"DATABASE: У user_id={user_id} использовано {data[0]} {limit_type}")
