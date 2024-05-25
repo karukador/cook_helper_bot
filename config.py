@@ -23,9 +23,10 @@ SYSTEM_PROMPT: list[dict[str, str]] = [{"role": "system", "text":
                                             "а 5 - опытный шеф-повар."
                                             "Старайся отвечать на вопросы, основываясь на уровне знаний пользователя."}]
 ADMIN_IDS: list = [1234, 4321]
-LEVELS = ['Новичок', 'Знаток', "Профи", "Мастер", "Гений"]
+LEVELS = ['новичок', 'знаток', "профи", "мастер", "гений"]
 URL_TOKEN = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
-
+ACCEPTABLE_VALUES = {'Уровень': LEVELS,
+                     'Приоритет ответа': ['любой', "текст", "аудио"]}
 # speechkit
 URL_TTS = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
 URL_STT = "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?"
@@ -43,3 +44,5 @@ FOLDER_ID_PATH = f'{HOME_DIR}/creds/folder_id.txt'  # файл для хране
 BOT_TOKEN_PATH = f'{HOME_DIR}/creds/bot_token.txt'  # файл для хранения bot_token
 DB_RECIPES = f'{HOME_DIR}/recipes.sqlite'
 CATEGORIES = ["основные", "завтраки", "салаты", "пицца-паста"]
+INGREDIENTS = ['Помидор', "Яйцо", "Молоко", "дальше"]
+TIMER = f'{HOME_DIR}/timer.mp3'
