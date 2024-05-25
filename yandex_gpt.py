@@ -54,7 +54,4 @@ def ask_gpt(messages, level=1):
         return False, "Ошибка при обращении к GPT",  None
 
 
-if __name__ == '__main__':
-    ask_gpt([], 2)
-    ask_gpt([], 3)
-    ask_gpt([], 4)
+
