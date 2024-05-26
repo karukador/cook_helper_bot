@@ -201,8 +201,11 @@ def recipe_handler_category(msg: Message):
 
 
 def recipe_handler_indredients(msg: Message, cat):
-    if msg.text != 'дальше':
-        bot.send_message(msg.chat.id, menu(cat, msg.text), parse_mode='markdown')
+    if msg.text != 'любой':
+        try:
+            bot.send_message(msg.chat.id, menu(cat, msg.text), parse_mode='markdown')
+        except ValueError:
+            bot.send_message(msg.chat.id, 'Ингредиент не найден.')
     else:
         bot.send_message(msg.chat.id, menu(cat), parse_mode='markdown')
 
@@ -321,8 +324,8 @@ def handle_voice(message: Message):
                 return
 
             # Запрос к GPT и обработка ответа
-            status_gpt, answer_gpt, tokens_in_answer = ask_gpt(last_messages, level=
-                                                               LEVELS.index(settings[message.chat.id]['Уровень'])+1)
+            status_gpt, answer_gpt, tokens_in_answer = ask_gpt(
+                last_messages, level=LEVELS.index(settings[message.chat.id]['Уровень'])+1)
             if not status_gpt:
                 bot.send_message(user_id, answer_gpt)
                 return
