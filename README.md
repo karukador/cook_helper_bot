@@ -27,6 +27,6 @@
 - README.md — описание к проекту  
 - how_to_use.md — инструкция к проекту  
 - recipes.sqlite - база данных рецептов с сайта eda.ru  
--timer.mp3 - аудио таймера  
+- timer.mp3 - аудио таймера  
 
 [Инструкция](https://github.com/karukador/cook_help_bot/blob/main/how_to_use.md) к использованию бота в файле `how_to_use.md`
