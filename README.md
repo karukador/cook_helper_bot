@@ -1,4 +1,7 @@
 # [Бот-помощник на кухне](https://t.me/cook_help_ai_bot)
+![Python](https://img.shields.io/badge/Python-green?style=for-the-badge)
+![Telebot](https://img.shields.io/badge/Telebot-blue?style=for-the-badge)
+![schedule](https://img.shields.io/badge/schedule-orange?style=for-the-badge)  
 ИИ помощник на кухне для telegram на python с SpeechKit.  
 Для людей кто любит готовить или просто вынужден это делать.  
 Бот с нейросетью, помогающий в приготовлении еды с помощью своих мега классных функций.  
