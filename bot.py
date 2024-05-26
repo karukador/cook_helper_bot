@@ -53,9 +53,9 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand("set", "поставить таймер"),
-        BotCommand("unset", "убрать таймер"),
-        BotCommand("settings", "изменить/посмотреть настройки")]
+        BotCommand("set", "Поставить таймер"),
+        BotCommand("unset", "Убрать таймер"),
+        BotCommand("settings", "Изменить/посмотреть настройки")]
     bot.set_my_commands(commands)
     BotCommandScope("private", chat_id=message.chat.id)
 
@@ -74,7 +74,7 @@ def send_settings(msg: Message):
         dump_settings()
     bot.send_message(msg.chat.id,
                      f"Ваши текущие настройки:\n "
-                     f"{"\n".join(key + " - " + value for key, value in settings[msg.chat.id].items())}",
+                     f'{"\n".join(key + " - " + value for key, value in settings[msg.chat.id].items())}',
                      reply_markup=create_keyboard(["Поменять настройки"]))
     bot.register_next_step_handler(msg, settings_handler)
 
