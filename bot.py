@@ -23,12 +23,12 @@ settings = {}
 def load_settings():
     global settings
     try:
-        with open('settings.json', 'r', encoding='utf-8') as f:
+        with open("settings.json", "r", encoding="utf-8") as f:
             settings = json.load(f)
     except json.decoder.JSONDecodeError:
         settings = {}
     finally:
-        logging.info('Настройки пользователей загружены')
+        logging.info("Настройки пользователей загружены")
 
 
 # Команда /debug с доступом только для админов
@@ -53,36 +53,36 @@ def register_comands(message: Message):
         BotCommand("help", "основная информация о боте"),
         BotCommand("feedback", "оставить отзыв"),
         BotCommand("get_recipe", "выбрать рецепт"),
-        BotCommand('set', 'Поставить таймер'),
-        BotCommand('unset', 'Убрать таймер'),
-        BotCommand('settings', 'Изменить/посмотреть настройки')]
+        BotCommand("set", "поставить таймер"),
+        BotCommand("unset", "убрать таймер"),
+        BotCommand("settings", "изменить/посмотреть настройки")]
     bot.set_my_commands(commands)
-    BotCommandScope('private', chat_id=message.chat.id)
+    BotCommandScope("private", chat_id=message.chat.id)
 
 
 def dump_settings():
-    with open('settings.json', 'w', encoding='utf-8') as f:
+    with open("settings.json", "w", encoding="utf-8") as f:
         json.dump(settings, f)
 
 
-@bot.message_handler(commands=['settings'])
+@bot.message_handler(commands=["settings"])
 def send_settings(msg: Message):
     if not settings.get(msg.chat.id):
         settings[msg.chat.id] = {}
-        settings[msg.chat.id]['Уровень'] = 'новичок'
-        settings[msg.chat.id]['Приоритет ответа'] = 'любой'
+        settings[msg.chat.id]["Уровень"] = "новичок"
+        settings[msg.chat.id]["Приоритет ответа"] = "любой"
         dump_settings()
     bot.send_message(msg.chat.id,
-                     f'Ваши текущие настройки:\n '
-                     f'{"\n".join(key + ' - ' + value for key, value in settings[msg.chat.id].items())}',
-                     reply_markup=create_keyboard(['Поменять настройки']))
+                     f"Ваши текущие настройки:\n "
+                     f"{"\n".join(key + " - " + value for key, value in settings[msg.chat.id].items())}",
+                     reply_markup=create_keyboard(["Поменять настройки"]))
     bot.register_next_step_handler(msg, settings_handler)
 
 
 def settings_handler(msg: Message):
-    if msg.text == 'Поменять настройки':
-        bot.send_message(msg.chat.id, f'Выбери пункт, который ты хочешь поменять:\n'
-                                      f'{"\n".join(key for key, _ in settings[msg.chat.id].items())}',
+    if msg.text == "Поменять настройки":
+        bot.send_message(msg.chat.id, f"Выбери пункт, который ты хочешь поменять:\n"
+                                      f"{"\n".join(key for key, _ in settings[msg.chat.id].items())}",
                          reply_markup=create_keyboard([key for key, _ in settings[msg.chat.id].items()]))
         bot.register_next_step_handler(msg, handle_settings)
     else:
@@ -91,7 +91,7 @@ def settings_handler(msg: Message):
 
 def handle_settings(msg: Message):
     if msg.text in settings[msg.chat.id].keys():
-        bot.send_message(msg.chat.id, f'Выбери значение для параметра {msg.text}',
+        bot.send_message(msg.chat.id, f"Выбери значение для параметра {msg.text}",
                          reply_markup=create_keyboard(ACCEPTABLE_VALUES[msg.text]))
         bot.register_next_step_handler(msg, set_settings, msg.text)
 
@@ -99,10 +99,10 @@ def handle_settings(msg: Message):
 def set_settings(msg: Message, mode):
     if msg.text in ACCEPTABLE_VALUES[mode]:
         settings[msg.chat.id][mode] = msg.text
-        bot.send_message(msg.chat.id, f'Параметр *{mode}* изменен на значение *{msg.text}*', parse_mode='markdown')
+        bot.send_message(msg.chat.id, f"Параметр *{mode}* изменен на значение *{msg.text}*", parse_mode="markdown")
         dump_settings()
     else:
-        bot.send_message(msg.chat.id, 'Выбери вариант из предложенных')
+        bot.send_message(msg.chat.id, "Выбери вариант из предложенных")
 
 
 @bot.message_handler(commands=["feedback"])
@@ -113,9 +113,9 @@ def feedback_handler(message: Message):
 
 
 def feedback(message: Message):
-    with open('creds/feedback.txt', 'a', encoding='utf-8') as f:
-        f.write(f'{message.from_user.first_name}({message.from_user.id}) оставил отзыв - "{message.text}"\n')
-        bot.send_message(message.chat.id, 'Спасибо за отзыв!')
+    with open("creds/feedback.txt", "a", encoding="utf-8") as f:
+        f.write(f"{message.from_user.first_name}({message.from_user.id}) оставил отзыв - *{message.text}*\n")
+        bot.send_message(message.chat.id, "Спасибо за отзыв!")
 
 
 # Команда /start
@@ -123,21 +123,21 @@ def feedback(message: Message):
 def send_welcome(message: Message):
     if not settings.get(message.chat.id):
         settings[message.chat.id] = {}
-        settings[message.chat.id]['Уровень'] = 'новичок'
-        settings[message.chat.id]['Приоритет ответа'] = 'любой'
+        settings[message.chat.id]["Уровень"] = "новичок"
+        settings[message.chat.id]["Приоритет ответа"] = "любой"
         dump_settings()
     logging.info("Отправка приветственного сообщения")
     bot.reply_to(message, start_message)
     register_comands(message)
 
 
-@bot.message_handler(commands=['set'])
+@bot.message_handler(commands=["set"])
 def set_timer_handler(msg: Message):
     if not schedule.get_jobs(msg.chat.id):
-        bot.send_message(msg.chat.id, 'Чтобы поставить таймер, введи кол-во минут, на которые ты хотел бы'
-                                      'поставить таймер',
-                         reply_markup=create_keyboard(['5', '10', '15', '30']))
-        bot.register_next_step_handler(msg, set_timer_thing, 0, 'minutes')
+        bot.send_message(msg.chat.id, "Чтобы поставить таймер, введи кол-во минут, на которые ты хотел бы"
+                                      "поставить таймер",
+                         reply_markup=create_keyboard(["5", "10", "15", "30"]))
+        bot.register_next_step_handler(msg, set_timer_thing, 0, "minutes")
     else:
         hours = schedule.get_jobs(msg.chat.id)[0].next_run.hour
         minutes = schedule.get_jobs(msg.chat.id)[0].next_run.minute
@@ -155,27 +155,27 @@ def set_timer_thing(msg: Message, minutes, mode):
         thing = None
     if thing:
         thing = int(thing)
-        if mode == 'hours':
+        if mode == "hours":
             minutes += thing * 60
             schedule.every(minutes).minutes.do(alert, msg.chat.id).tag(msg.chat.id)
-            bot.send_message(msg.chat.id, 'Таймер поставлен!')
-        elif mode == 'minutes':
+            bot.send_message(msg.chat.id, "Таймер поставлен!")
+        elif mode == "minutes":
             minutes += thing
-            bot.send_message(msg.chat.id, 'Теперь введи кол-во часов',
-                             reply_markup=create_keyboard(['1', '2', '3', '4']))
-            bot.register_next_step_handler(msg, set_timer_thing, minutes, 'hours')
+            bot.send_message(msg.chat.id, "Теперь введи кол-во часов",
+                             reply_markup=create_keyboard(["1", "2", "3", "4"]))
+            bot.register_next_step_handler(msg, set_timer_thing, minutes, "hours")
     else:
-        bot.send_message(msg.chat.id, 'Отправь число')
+        bot.send_message(msg.chat.id, "Отправь число")
 
 
-@bot.message_handler(commands=['unset'])
+@bot.message_handler(commands=["unset"])
 def unset_timer(msg: Message):
     if schedule.get_jobs(msg.chat.id):
         schedule.clear(msg.chat.id)
-        bot.send_message(msg.chat.id, 'Таймер остановлен.')
+        bot.send_message(msg.chat.id, "Таймер остановлен.")
     else:
-        bot.send_message(msg.chat.id, 'У вас еще не поставлен таймер. Введите команду /set для того,'
-                                      'чтобы его поставить.')
+        bot.send_message(msg.chat.id, "У вас еще не поставлен таймер. Введите команду /set для того,"
+                                      "чтобы его поставить.")
 
 
 def alert(user_id):
@@ -185,29 +185,29 @@ def alert(user_id):
     schedule.clear(user_id)
 
 
-@bot.message_handler(commands=['get_recipe'])
+@bot.message_handler(commands=["get_recipe"])
 def recipe_handler_start(msg: Message):
-    bot.send_message(msg.chat.id, 'Выбери категорию', reply_markup=create_keyboard(CATEGORIES))
+    bot.send_message(msg.chat.id, "Выбери категорию", reply_markup=create_keyboard(CATEGORIES))
     bot.register_next_step_handler(msg, recipe_handler_category)
 
 
 def recipe_handler_category(msg: Message):
     if msg.text not in CATEGORIES:
-        bot.send_message(msg.chat.id, 'Выбери вариант из предложенных')
+        bot.send_message(msg.chat.id, "Выбери вариант из предложенных")
         return
-    bot.send_message(msg.chat.id, 'Теперь введи предпочтительные ингредиенты(не обязательно)\n'
-                                  'Внизу есть варианты', reply_markup=create_keyboard(INGREDIENTS))
+    bot.send_message(msg.chat.id, "Теперь введи предпочтительные ингредиенты(не обязательно)\n"
+                                  "Внизу есть варианты", reply_markup=create_keyboard(INGREDIENTS))
     bot.register_next_step_handler(msg, recipe_handler_indredients, msg.text)
 
 
 def recipe_handler_indredients(msg: Message, cat):
-    if msg.text != 'любой':
+    if msg.text != "любой":
         try:
-            bot.send_message(msg.chat.id, menu(cat, msg.text), parse_mode='markdown')
+            bot.send_message(msg.chat.id, menu(cat, msg.text), parse_mode="markdown")
         except ValueError:
-            bot.send_message(msg.chat.id, 'Ингредиент не найден.')
+            bot.send_message(msg.chat.id, "Ингредиент не найден.")
     else:
-        bot.send_message(msg.chat.id, menu(cat), parse_mode='markdown')
+        bot.send_message(msg.chat.id, menu(cat), parse_mode="markdown")
 
 
 # команда /help
@@ -226,7 +226,7 @@ def handle_text(message: Message):
                 bot.send_message(user_id, error_message)  # мест нет =(
                 return
             # БД: добавляем сообщение пользователя и его роль в базу данных
-            full_user_message = [message.text, 'user', 0, 0, 0]
+            full_user_message = [message.text, "user", 0, 0, 0]
             add_message(user_id=user_id, full_message=full_user_message)
             # ВАЛИДАЦИЯ: считаем количество доступных пользователю GPT-токенов
             # получаем последние 4 (COUNT_LAST_MSG) сообщения и количество уже потраченных токенов
@@ -239,7 +239,7 @@ def handle_text(message: Message):
                 return
             # GPT: отправляем запрос к GPT
             status_gpt, answer_gpt, tokens_in_answer = ask_gpt(last_messages, level=LEVELS.index(
-                settings[message.chat.id]['Уровень'])+1)
+                settings[message.chat.id]["Уровень"])+1)
             # GPT: обрабатываем ответ от GPT
             if not status_gpt:
                 # если что-то пошло не так — уведомляем пользователя и прекращаем выполнение функции
@@ -248,12 +248,12 @@ def handle_text(message: Message):
             # сумма всех потраченных токенов + токены в ответе GPT
             total_gpt_tokens += tokens_in_answer
             # БД: добавляем ответ GPT и потраченные токены в базу данных
-            full_gpt_message = [answer_gpt, 'assistant', total_gpt_tokens, 0, 0]
+            full_gpt_message = [answer_gpt, "assistant", total_gpt_tokens, 0, 0]
             add_message(user_id=user_id, full_message=full_gpt_message)
-            if settings[message.chat.id]['Приоритет ответа'] == 'аудио':
-                status_tts, voice_response = text_to_speech(answer_gpt.replace('*', '').replace('#', ''))
+            if settings[message.chat.id]["Приоритет ответа"] == "аудио":
+                status_tts, voice_response = text_to_speech(answer_gpt.replace("*", "").replace("#", ""))
                 if status_tts:
-                    bot.send_message(user_id, answer_gpt, parse_mode='markdown')
+                    bot.send_message(user_id, answer_gpt, parse_mode="markdown")
                     bot.send_voice(user_id, voice_response, reply_to_message_id=message.id)
                 else:
                     bot.send_message(user_id, answer_gpt, reply_to_message_id=message.id)
@@ -271,15 +271,15 @@ def handle_text(message: Message):
 def set_level(msg: Message):
     if not settings.get(msg.chat.id):
         settings[msg.chat.id] = {}
-        settings[msg.chat.id]['Приоритет ответа'] = 'любой'
-    settings[msg.chat.id]['Уровень'] = msg.text
+        settings[msg.chat.id]["Приоритет ответа"] = "любой"
+    settings[msg.chat.id]["Уровень"] = msg.text
 
 
-@bot.message_handler(content_types=['voice', 'text'])
+@bot.message_handler(content_types=["voice", "text"])
 def handle_all(msg: Message):
     if not settings.get(msg.chat.id):
-        bot.send_message(msg.chat.id, 'Введите, пожалуйста, ваш уровень знаний кулинарии в меню снизу',
-                         reply_markup=create_keyboard(['Новичок', 'Знаток', "Профи", "Мастер", "Гений"]))
+        bot.send_message(msg.chat.id, "Введите, пожалуйста, ваш уровень знаний кулинарии в меню снизу",
+                         reply_markup=create_keyboard(["Новичок", "Знаток", "Профи", "Мастер", "Гений"]))
         bot.register_next_step_handler(msg, set_level)
     if msg.voice:
         handle_voice(msg)
@@ -314,7 +314,7 @@ def handle_voice(message: Message):
                 return
 
             # Запись в БД
-            add_message(user_id=user_id, full_message=[stt_text, 'user', 0, 0, stt_blocks])
+            add_message(user_id=user_id, full_message=[stt_text, "user", 0, 0, stt_blocks])
 
             # Проверка на доступность GPT-токенов
             last_messages, total_spent_tokens = select_n_last_messages(user_id, COUNT_LAST_MSG)
@@ -325,7 +325,7 @@ def handle_voice(message: Message):
 
             # Запрос к GPT и обработка ответа
             status_gpt, answer_gpt, tokens_in_answer = ask_gpt(
-                last_messages, level=LEVELS.index(settings[message.chat.id]['Уровень'])+1)
+                last_messages, level=LEVELS.index(settings[message.chat.id]["Уровень"])+1)
             if not status_gpt:
                 bot.send_message(user_id, answer_gpt)
                 return
@@ -335,14 +335,14 @@ def handle_voice(message: Message):
             tts_symbols, error_message = is_tts_symbol_limit(user_id, answer_gpt)
 
             # Запись ответа GPT в БД
-            add_message(user_id=user_id, full_message=[answer_gpt, 'assistant', total_gpt_tokens, tts_symbols, 0])
+            add_message(user_id=user_id, full_message=[answer_gpt, "assistant", total_gpt_tokens, tts_symbols, 0])
 
             if error_message:
                 bot.send_message(user_id, error_message)
                 return
             if settings.get(message.chat.id):
-                if settings[message.chat.id]['Приоритет ответа'] == 'текст':
-                    bot.send_message(message.chat.id, answer_gpt, parse_mode='markdown')
+                if settings[message.chat.id]["Приоритет ответа"] == "текст":
+                    bot.send_message(message.chat.id, answer_gpt, parse_mode="markdown")
                     return
                 else:
                     # Преобразование ответа в аудио и отправка
@@ -379,8 +379,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H",
         filename=LOGS,
         filemode="a",
-        encoding='utf-8',
+        encoding="utf-8",
         force=True)
     create_database()  # Создание таблицы в БД
-    Thread(target=_schedule, name='schedule', daemon=True).start()
+    Thread(target=_schedule, name="schedule", daemon=True).start()
     bot.infinity_polling()
